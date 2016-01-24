@@ -1,4 +1,4 @@
-"""Image Segmentation using K-means Clustering"""
+"""Image Segmentation using Improved K-means Clustering"""
 
 from __future__ import print_function
 from __future__ import division
@@ -10,7 +10,7 @@ from matplotlib import pyplot
 from sklearn.utils import check_random_state
 from sklearn.utils import check_array
 
-class KMeans():
+class ImprovedKMeans():
 
     def __init__(self, n_clusters=3, max_iter=150, tol=1e-3):
 
@@ -43,18 +43,21 @@ class KMeans():
     def update_dist(self, X):
         n_samples = X.shape[0]
         for j in xrange(n_samples):
-            
-            cost = euclidean(X[j], self.centroids[0])
-            ind = 0;
-            
-            for k in range(1,self.n_clusters):
+                      
+            if euclidean(X[j], self.centroids[self.labels[j]]) > self.dist[j]:
                 
-                temp = euclidean(X[j], self.centroids[k])
-                if(temp < cost):
-                    cost = temp
-                    ind = k
+                cost = euclidean(X[j], self.centroids[0])
+                ind = 0;
+                
+                for k in range(1,self.n_clusters):
                     
-            self.labels[j] = ind    
+                    temp = euclidean(X[j], self.centroids[k])
+                    if(temp < cost):
+                        cost = temp
+                        ind = k
+                        
+                self.dist[j]   = cost     
+                self.labels[j] = ind    
 
     def initiate(self, X):
         
@@ -70,6 +73,7 @@ class KMeans():
         
         self.centroids = X[centroids_idx]
         self.labels = np.zeros((n_samples))
+        self.dist   = np.zeros((n_samples))
         labels_old  = np.zeros((n_samples))
     
         for itr in xrange(self.max_iter):
@@ -92,15 +96,15 @@ class KMeans():
         self.X_fit_ = X
         return self
         
-# 0 -> black
+
 
 def segmentImage():
     
     img = spm.lena()
-    img = spm.imresize(img, (200, 200))
+    img = spm.imresize(img, (300, 300))
     height, width = img.shape
     
-    obj = KMeans(n_clusters=3, max_iter=100 )
+    obj = ImprovedKMeans(n_clusters=3, max_iter=100 )
     img_list = np.reshape(img, (height*width, 1))
     obj.initiate(img_list)
     index = np.copy(obj.labels)
